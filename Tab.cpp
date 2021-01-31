@@ -30,6 +30,7 @@ BOOL CALLBACK Tab::EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
     {
         hwnd_DevTools = hwnd;
         pid_DevTools = GetWindowThreadProcessId(hwnd, NULL);
+        DevToolsState = DockState::DS_UNDOCK;
         return FALSE;
     }
     return TRUE;
@@ -221,7 +222,6 @@ void Tab::DockDevTools(DockState state)
     if (state == DockState::DS_UNDOCK)
     {
         SetParent(hwnd_DevTools, nullptr);
-        lStyle &= ~WS_CHILD;
         uFlags |= SWP_NOZORDER;
     }
     else // DOCK
@@ -229,7 +229,6 @@ void Tab::DockDevTools(DockState state)
         GetWindowRect(hwnd_DevTools, &prevRect);
         SetParent(hwnd_DevTools, m_parentHWnd);
         lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED | WS_THICKFRAME);
-        lStyle |= WS_CHILD;
     }
     
     SetWindowLong(hwnd_DevTools, GWL_STYLE, lStyle);
@@ -249,15 +248,7 @@ DockState Tab::GetDevToolsState()
         return DockState::DS_UNKNOWN;
     }
 
-    // Need a better way to determine the dock positions of the devtools..
-    if (GetParent(hwnd_DevTools) == nullptr)
-    {
-        DevToolsState = DockState::DS_UNDOCK; // That must match. This line isn't necessary but let's just make sure everything is right.
-        return DockState::DS_UNDOCK;
-    }
-
-    DevToolsState = DockState::DS_DOCKPOS1; // That must match. This line isn't necessary but let's just make sure everything is right.
-    return DockState::DS_DOCKPOS1;
+    return DevToolsState;
 }
 
 HWND Tab::GetWindowHandle()
