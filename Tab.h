@@ -6,17 +6,40 @@
 
 #include "framework.h"
 
+enum class DockState: int
+{
+    DS_UNKNOWN, // No window or unable to locate
+    DS_UNDOCK,
+    DS_DOCKPOS1, // First dock position
+    DS_AMOUNT
+};
+
+static DockState operator+ (DockState const &d1, int const &n) 
+{
+    return static_cast<DockState>(static_cast<int>(d1)+n); 
+}
+
 class Tab
 {
 public:
+    Tab();
     Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_contentController;
     Microsoft::WRL::ComPtr<ICoreWebView2> m_contentWebView;
     Microsoft::WRL::ComPtr<ICoreWebView2DevToolsProtocolEventReceiver> m_securityStateChangedReceiver;
 
+    static BOOL CALLBACK EnumWindowsProcStatic(_In_ HWND hwnd, _In_ LPARAM lParam);
+    BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam);
+
     static std::unique_ptr<Tab> CreateNewTab(HWND hWnd, ICoreWebView2Environment* env, size_t id, bool shouldBeActive);
     HRESULT ResizeWebView();
+    void DockDevTools(DockState state);
+    HWND GetDevTools();
+    HWND GetWindowHandle();
+    DockState GetDevToolsState();
+    size_t GetTabId() { return m_tabId; }
 protected:
     HWND m_parentHWnd = nullptr;
+    HWND hwnd_DevTools = nullptr;
     size_t m_tabId = INVALID_TAB_ID;
     EventRegistrationToken m_historyUpdateForwarderToken = {};
     EventRegistrationToken m_uriUpdateForwarderToken = {};
@@ -24,8 +47,14 @@ protected:
     EventRegistrationToken m_navCompletedToken = {};
     EventRegistrationToken m_securityUpdateToken = {};
     EventRegistrationToken m_messageBrokerToken = {};  // Message broker for browser pages loaded in a tab
+    EventRegistrationToken m_acceleratorKeyPressedToken = {};
     Microsoft::WRL::ComPtr<ICoreWebView2WebMessageReceivedEventHandler> m_messageBroker;
 
     HRESULT Init(ICoreWebView2Environment* env, bool shouldBeActive);
     void SetMessageBroker();
+    void FindDevTools();
+    DWORD possible_PID; // Possibile PID of the DevTools
+    DWORD pid_DevTools;
+    DockState DevToolsState;
+    RECT prevRect;
 };
