@@ -243,10 +243,7 @@ void Tab::DockDevTools(DockState state)
 DockState Tab::GetDevToolsState()
 {
     if (HWND hwnd = GetDevTools(); hwnd == nullptr)
-    {
-        DevToolsState = DockState::DS_UNKNOWN; // That must match. This line isn't necessary but let's just make sure everything is right.
-        return DockState::DS_UNKNOWN;
-    }
+        DevToolsState = DockState::DS_UNKNOWN;
 
     return DevToolsState;
 }
