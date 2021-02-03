@@ -10,8 +10,30 @@ enum class DockState: int
 {
     DS_UNKNOWN, // No window or unable to locate
     DS_UNDOCK,
-    DS_DOCKPOS1, // First dock position
+    DS_DOCK_RIGHT,
+    DS_DOCK_LEFT,
+    DS_DOCK_BOTTOM,
     DS_AMOUNT
+};
+
+struct Dimensions // Of Webview, not the dev tools
+{
+    float Width, Height; // 1.0f means FULL
+};
+
+struct HASH
+{
+    template <typename T>
+    std::size_t operator()(T t) const {
+        return static_cast<std::size_t>(t);
+    }
+};
+
+const std::unordered_map<DockState, Dimensions, HASH> DockData =
+{
+    {DockState::DS_DOCK_RIGHT, {0.7f, 1.0f}}, // Example: Width of the browser is filled with 70% webview, 30% dev tools.
+    {DockState::DS_DOCK_LEFT, {0.7f, 1.0f}},
+    {DockState::DS_DOCK_BOTTOM, {1.0f, 0.7f}}
 };
 
 static DockState operator+ (DockState const &d1, int const &n) 

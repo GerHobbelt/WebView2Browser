@@ -165,14 +165,21 @@ HRESULT Tab::ResizeWebView()
     BrowserWindow* browserWindow = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(m_parentHWnd, GWLP_USERDATA));
     bounds.top += browserWindow->GetDPIAwareBound(BrowserWindow::c_uiBarHeight);
     
-    switch (int half = bounds.right * 50 / 100; GetDevToolsState())
+    switch (DockState ds = GetDevToolsState())
     {
         case DockState::DS_UNDOCK:
             MoveWindow(hwnd_DevTools, prevRect.left, prevRect.top, prevRect.right - prevRect.left, prevRect.bottom - prevRect.top, true);
             break;
-        case DockState::DS_DOCKPOS1:
-            MoveWindow(hwnd_DevTools, half, bounds.top, bounds.right - half, bounds.bottom - bounds.top, true);
-            bounds.right = half;
+        case DockState::DS_DOCK_RIGHT:
+            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * bounds.top), int(bounds.right - DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), true);
+            bounds.right = int(bounds.right * DockData.at(ds).Width);
+        break;
+        case DockState::DS_DOCK_LEFT:
+            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.left), int(DockData.at(ds).Height * bounds.top), int(bounds.right - DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), true);
+            bounds.left = int(bounds.left * DockData.at(ds).Width);
+        break;
+        case DockState::DS_DOCK_BOTTOM:
+            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.left), browserWindow->GetDPIAwareBound(BrowserWindow::c_uiBarHeight) + int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), int(DockData.at(ds).Width * bounds.right - bounds.left), int((1.0f - DockData.at(ds).Height) * (bounds.bottom - bounds.top)), true);
         break;
     }
 
