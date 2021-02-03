@@ -78,5 +78,5 @@ protected:
     DWORD possible_PID; // Possibile PID of the DevTools
     DWORD pid_DevTools;
     DockState DevToolsState;
-    RECT prevRect;
+    RECT undockedRect;
 };

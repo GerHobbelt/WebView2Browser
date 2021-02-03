@@ -168,7 +168,7 @@ HRESULT Tab::ResizeWebView()
     switch (DockState ds = GetDevToolsState())
     {
         case DockState::DS_UNDOCK:
-            MoveWindow(hwnd_DevTools, prevRect.left, prevRect.top, prevRect.right - prevRect.left, prevRect.bottom - prevRect.top, true);
+            MoveWindow(hwnd_DevTools, undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top, true);
             break;
         case DockState::DS_DOCK_RIGHT:
             MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * bounds.top), int(bounds.right - DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), true);
@@ -233,7 +233,8 @@ void Tab::DockDevTools(DockState state)
     }
     else // DOCK
     {
-        GetWindowRect(hwnd_DevTools, &prevRect);
+        if (state == DockState::DS_DOCK_RIGHT)
+            GetWindowRect(hwnd_DevTools, &undockedRect);
         SetParent(hwnd_DevTools, m_parentHWnd);
         lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED | WS_THICKFRAME);
     }
