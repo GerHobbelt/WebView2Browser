@@ -247,7 +247,7 @@ void Tab::DockDevTools(DockState state)
         {
             RECT undockedRect;
             GetWindowRect(hwnd_DevTools, &undockedRect);
-            DockDataMap.insert(std::make_pair(DockState::DS_UNDOCK, new DockData(undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top)));
+            DockDataMap.insert(std::make_pair(DockState::DS_UNDOCK, std::make_shared<DockData>(undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top)));
         }
         SetParent(hwnd_DevTools, m_parentHWnd);
         lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED | WS_THICKFRAME);
@@ -286,7 +286,7 @@ void Tab::CalculateDockData(RECT bounds)
 
     for (auto i = DockDataMap.begin(); i != DockDataMap.end(); ++i)
     {
-        i->second = new DockData(0,0,0,0);
+        i->second = std::make_shared<DockData>(0,0,0,0);
         i->second->X = int(round(DockRatioMap.at(i->first).XWidth * (i->first == DockState::DS_DOCK_RIGHT ? bounds.right : bounds.left)));
 
         switch (BrowserWindow* browserWindow = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(m_parentHWnd, GWLP_USERDATA)); i->first)

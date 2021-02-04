@@ -47,11 +47,11 @@ struct DockData
 };
 
 // Current window dimensions
-static std::unordered_map<DockState, DockData*, HASH> DockDataMap =
+static std::unordered_map<DockState, std::shared_ptr<DockData>, HASH> DockDataMap =
 {
-    {DockState::DS_DOCK_RIGHT, {NULL}},
-    {DockState::DS_DOCK_LEFT, {NULL}},
-    {DockState::DS_DOCK_BOTTOM, {NULL}}
+    {DockState::DS_DOCK_RIGHT, nullptr},
+    {DockState::DS_DOCK_LEFT, nullptr},
+    {DockState::DS_DOCK_BOTTOM, nullptr}
 };
 
 static DockState operator+ (DockState const &d1, int const &n) 
