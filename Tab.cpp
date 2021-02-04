@@ -165,22 +165,32 @@ HRESULT Tab::ResizeWebView()
     BrowserWindow* browserWindow = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(m_parentHWnd, GWLP_USERDATA));
     bounds.top += browserWindow->GetDPIAwareBound(BrowserWindow::c_uiBarHeight);
     
-    switch (DockState ds = GetDevToolsState())
+    CalculateDockData(bounds); // Calculate initial dock data 
+
+    if (DockState ds = GetDevToolsState(); ds != DockState::DS_UNKNOWN)
     {
-        case DockState::DS_UNDOCK:
-            MoveWindow(hwnd_DevTools, undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top, true);
-            break;
-        case DockState::DS_DOCK_RIGHT:
-            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * bounds.top), int(bounds.right - DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), true);
-            bounds.right = int(bounds.right * DockData.at(ds).Width);
-        break;
-        case DockState::DS_DOCK_LEFT:
-            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.left), int(DockData.at(ds).Height * bounds.top), int(bounds.right - DockData.at(ds).Width * bounds.right), int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), true);
-            bounds.left = int(bounds.left * DockData.at(ds).Width);
-        break;
-        case DockState::DS_DOCK_BOTTOM:
-            MoveWindow(hwnd_DevTools, int(DockData.at(ds).Width * bounds.left), browserWindow->GetDPIAwareBound(BrowserWindow::c_uiBarHeight) + int(DockData.at(ds).Height * (bounds.bottom - bounds.top)), int(DockData.at(ds).Width * bounds.right - bounds.left), int((1.0f - DockData.at(ds).Height) * (bounds.bottom - bounds.top)), true);
-        break;
+        RECT windowRect;
+        GetWindowRect(m_parentHWnd, &windowRect);
+        if (int bordersWidth = (windowRect.right - windowRect.left) - bounds.right; ds == DockState::DS_DOCK_RIGHT)
+        {
+            bounds.right = windowRect.right - windowRect.left - DockDataMap.at(ds)->nWidth - bordersWidth;
+            DockDataMap.at(ds)->X = bounds.right;
+            DockDataMap.at(ds)->nHeight = bounds.bottom - bounds.top;
+        }
+        else if (LONG old = bounds.left; ds == DockState::DS_DOCK_LEFT)
+        {
+            bounds.left += DockDataMap.at(ds)->nWidth;
+            DockDataMap.at(ds)->X = old;
+            DockDataMap.at(ds)->nHeight = bounds.bottom - bounds.top;
+        }
+        else if (ds == DockState::DS_DOCK_BOTTOM)
+        {
+            bounds.bottom -= DockDataMap.at(ds)->nHeight;
+            DockDataMap.at(ds)->Y = bounds.bottom;
+            DockDataMap.at(ds)->nWidth = bounds.right - bounds.left;
+        }
+
+        MoveWindow(hwnd_DevTools, DockDataMap.at(ds)->X, DockDataMap.at(ds)->Y, DockDataMap.at(ds)->nWidth, DockDataMap.at(ds)->nHeight, true);
     }
 
     return m_contentController->put_Bounds(bounds);
@@ -233,8 +243,12 @@ void Tab::DockDevTools(DockState state)
     }
     else // DOCK
     {
-        if (state == DockState::DS_DOCK_RIGHT)
+        if (state == DockState::DS_DOCK_RIGHT && DockDataMap.find(DockState::DS_UNDOCK) == DockDataMap.end())
+        {
+            RECT undockedRect;
             GetWindowRect(hwnd_DevTools, &undockedRect);
+            DockDataMap.insert(std::make_pair(DockState::DS_UNDOCK, new DockData(undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top)));
+        }
         SetParent(hwnd_DevTools, m_parentHWnd);
         lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED | WS_THICKFRAME);
     }
@@ -263,4 +277,31 @@ HWND Tab::GetWindowHandle()
     for (int i = INVALID_TAB_ID; i < browser_window->GetRemainingTabAmount()-1; ++i)
         childhwnd = GetNextWindow(childhwnd, GW_HWNDPREV); // Current webview's hwnd, there is no better way to get that unfortunately
     return childhwnd;
+}
+
+void Tab::CalculateDockData(RECT bounds)
+{
+    if (find_if(DockDataMap.begin(), DockDataMap.end(), [](const auto&it){ return it.second == nullptr; }) == DockDataMap.end())
+        return; // Proceed if there is any null DockData*
+
+    for (auto i = DockDataMap.begin(); i != DockDataMap.end(); ++i)
+    {
+        i->second = new DockData(0,0,0,0);
+        i->second->X = int(round(DockRatioMap.at(i->first).XWidth * (i->first == DockState::DS_DOCK_RIGHT ? bounds.right : bounds.left)));
+
+        switch (BrowserWindow* browserWindow = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(m_parentHWnd, GWLP_USERDATA)); i->first)
+        {
+            case DockState::DS_DOCK_RIGHT:
+            case DockState::DS_DOCK_LEFT:
+                i->second->Y = int(round(DockRatioMap.at(i->first).YHeight * bounds.top));
+                i->second->nWidth = int(round(bounds.right - DockRatioMap.at(i->first).XWidth * bounds.right));
+                i->second->nHeight = int(round(DockRatioMap.at(i->first).YHeight * (bounds.bottom - bounds.top)));
+            break;
+            case DockState::DS_DOCK_BOTTOM:
+                i->second->Y = browserWindow->GetDPIAwareBound(BrowserWindow::c_uiBarHeight) + int(round(DockRatioMap.at(i->first).YHeight * (bounds.bottom - bounds.top)));
+                i->second->nWidth = int(round(DockRatioMap.at(i->first).XWidth * bounds.right - bounds.left));
+                i->second->nHeight = int(round((1.0f - DockRatioMap.at(i->first).YHeight) * (bounds.bottom - bounds.top)));
+            break;
+        }
+    }
 }

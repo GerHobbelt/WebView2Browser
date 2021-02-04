@@ -16,9 +16,9 @@ enum class DockState: int
     DS_AMOUNT
 };
 
-struct Dimensions // Of Webview, not the dev tools
+struct DockRatio // Of Webview, not the dev tools
 {
-    float Width, Height; // 1.0f means FULL
+    double XWidth, YHeight; // Range: 0.0f > x >= 1.0f and 1.0f means FULL
 };
 
 struct HASH
@@ -29,11 +29,29 @@ struct HASH
     }
 };
 
-const std::unordered_map<DockState, Dimensions, HASH> DockData =
+// Default window ratio which is used to calculate each DockData inside the DockDataMap
+// This way you set an initial position and dimension for each DockState
+// Below, the browser is made of 70% webview and what's left is dev tools which is 30%.
+const std::unordered_map<DockState, DockRatio, HASH> DockRatioMap =
 {
-    {DockState::DS_DOCK_RIGHT, {0.7f, 1.0f}}, // Example: Width of the browser is filled with 70% webview, 30% dev tools.
+    //DS_UNDOCK inherits everything after the window created automatically
+    {DockState::DS_DOCK_RIGHT, {0.7f, 1.0f}},
     {DockState::DS_DOCK_LEFT, {0.7f, 1.0f}},
     {DockState::DS_DOCK_BOTTOM, {1.0f, 0.7f}}
+};
+
+struct DockData
+{
+    DockData(int _X, int _Y, int _nWidth, int _nHeight) : X(_X), Y(_Y), nWidth(_nWidth), nHeight(_nHeight) {}
+    int X, Y, nWidth, nHeight;
+};
+
+// Current window dimensions
+static std::unordered_map<DockState, DockData*, HASH> DockDataMap =
+{
+    {DockState::DS_DOCK_RIGHT, {NULL}},
+    {DockState::DS_DOCK_LEFT, {NULL}},
+    {DockState::DS_DOCK_BOTTOM, {NULL}}
 };
 
 static DockState operator+ (DockState const &d1, int const &n) 
@@ -55,6 +73,7 @@ public:
     static std::unique_ptr<Tab> CreateNewTab(HWND hWnd, ICoreWebView2Environment* env, size_t id, bool shouldBeActive);
     HRESULT ResizeWebView();
     void DockDevTools(DockState state);
+    void CalculateDockData(RECT bounds);
     HWND GetDevTools();
     HWND GetWindowHandle();
     DockState GetDevToolsState();
@@ -78,5 +97,4 @@ protected:
     DWORD possible_PID; // Possibile PID of the DevTools
     DWORD pid_DevTools;
     DockState DevToolsState;
-    RECT undockedRect;
 };
