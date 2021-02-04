@@ -17,10 +17,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                       _In_ LPWSTR    lpCmdLine,
                       _In_ int       nCmdShow)
 {
-        AllocConsole();
-    FILE *stream;
-    errno_t err = freopen_s(&stream, "CONOUT$", "w+", stdout);
-
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
