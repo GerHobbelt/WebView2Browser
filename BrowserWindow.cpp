@@ -229,6 +229,8 @@ HRESULT BrowserWindow::InitUIWebViews()
 
         RETURN_IF_FAILED(CreateBrowserControlsWebView());
         RETURN_IF_FAILED(CreateBrowserOptionsWebView());
+        for (int i = 0; i < 2; ++i) // Default.html & Options.html
+            SetWindowPos(GetWindow(m_hWnd, GW_HWNDNEXT), HWND_TOP, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 
         return S_OK;
     }).Get());

@@ -191,7 +191,9 @@ HRESULT Tab::ResizeWebView()
         }
 
         int offset = 8; // This is needed to make the dev window fit fully
-        MoveWindow(hwnd_DevTools, DockDataMap.at(ds)->X - offset, DockDataMap.at(ds)->Y, DockDataMap.at(ds)->nWidth + offset*2, DockDataMap.at(ds)->nHeight + 7, true);
+        RECT rcFrame;
+        AdjustWindowRectExForDpi(&rcFrame, WS_OVERLAPPEDWINDOW, FALSE, 0, GetDpiForWindow(hwnd_DevTools)); // Not supported below Windows 10, version 1607
+        MoveWindow(hwnd_DevTools, DockDataMap.at(ds)->X - offset, DockDataMap.at(ds)->Y + rcFrame.top, DockDataMap.at(ds)->nWidth + offset*2, DockDataMap.at(ds)->nHeight + 7, true);
     }
 
     return m_contentController->put_Bounds(bounds);
@@ -260,7 +262,7 @@ void Tab::DockDevTools(DockState state)
     
     SetWindowLong(hwnd_DevTools, GWL_STYLE, lStyle);
     SetWindowLong(hwnd_DevTools, GWL_EXSTYLE, exStyle);
-    SetWindowPos(hwnd_DevTools, HWND_TOP, 0, 0, 0, 0, uFlags);
+    SetWindowPos(hwnd_DevTools, HWND_BOTTOM, 0, 0, 0, 0, uFlags);
 
     if (HWND hwndThis = GetWindowHandle(); hwndThis != nullptr)
         SetFocus(hwndThis); // Docking/Undocking the DevTools cause loss of focus. And the AcceleratorKeyPressed event is only set for this window.
