@@ -81,6 +81,7 @@ public:
 protected:
     HWND m_parentHWnd = nullptr;
     HWND hwnd_DevTools = nullptr;
+    HWND m_hWnd = nullptr;
     size_t m_tabId = INVALID_TAB_ID;
     EventRegistrationToken m_historyUpdateForwarderToken = {};
     EventRegistrationToken m_uriUpdateForwarderToken = {};
@@ -94,7 +95,7 @@ protected:
     HRESULT Init(ICoreWebView2Environment* env, bool shouldBeActive);
     void SetMessageBroker();
     void FindDevTools();
-    DWORD possible_PID; // Possibile PID of the DevTools
-    DWORD pid_DevTools;
+    DWORD possible_PID; // Possible PID of the DevTools
+    DWORD pid_DevTools = 0;
     DockState DevToolsState;
 };

@@ -8,7 +8,7 @@
 
 using namespace Microsoft::WRL;
 
-Tab::Tab() : pid_DevTools(0), DevToolsState(DockState::DS_UNKNOWN) {}
+Tab::Tab() : DevToolsState(DockState::DS_UNKNOWN) {}
 
 BOOL CALLBACK Tab::EnumWindowsProcStatic(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
@@ -121,10 +121,12 @@ HRESULT Tab::Init(ICoreWebView2Environment* env, bool shouldBeActive)
                     RETURN_IF_FAILED(args->get_VirtualKey(&key));
                     if (key == 0x44) // "D"
                     {
+                        m_hWnd = GetFocus();
                         COREWEBVIEW2_PHYSICAL_KEY_STATUS status;
                         RETURN_IF_FAILED(args->get_PhysicalKeyStatus(&status));
                         if ((GetKeyState(VK_CONTROL) & 0x8000) && (GetKeyState(VK_SHIFT) & 0x8000)) // CTRL + SHIFT + D
                         {
+
                             RETURN_IF_FAILED(args->put_Handled(TRUE));
                             DockState state = GetDevToolsState();
                             if (state == DockState::DS_UNKNOWN)
@@ -263,9 +265,8 @@ void Tab::DockDevTools(DockState state)
     SetWindowLong(hwnd_DevTools, GWL_STYLE, lStyle);
     SetWindowLong(hwnd_DevTools, GWL_EXSTYLE, exStyle);
     SetWindowPos(hwnd_DevTools, HWND_BOTTOM, 0, 0, 0, 0, uFlags);
-
-    if (HWND hwndThis = GetWindowHandle(); hwndThis != nullptr)
-        SetFocus(hwndThis); // Docking/Undocking the DevTools cause loss of focus. And the AcceleratorKeyPressed event is only set for this window.
+    if (state != DockState::DS_UNDOCK)
+        SetFocus(m_hWnd); // Docking/Undocking the DevTools cause loss of focus. And the AcceleratorKeyPressed event is only set for this window.
 
     ResizeWebView();
 }
@@ -276,15 +277,6 @@ DockState Tab::GetDevToolsState()
         DevToolsState = DockState::DS_UNKNOWN;
 
     return DevToolsState;
-}
-
-HWND Tab::GetWindowHandle()
-{
-    BrowserWindow* browser_window = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(m_parentHWnd, GWLP_USERDATA));
-    HWND childhwnd = GetNextWindow(GetTopWindow(m_parentHWnd), GW_HWNDLAST);
-    for (int i = INVALID_TAB_ID; i < browser_window->GetRemainingTabAmount()-1; ++i)
-        childhwnd = GetNextWindow(childhwnd, GW_HWNDPREV); // Current webview's hwnd, there is no better way to get that unfortunately
-    return childhwnd;
 }
 
 void Tab::CalculateDockData(RECT bounds)
