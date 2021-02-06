@@ -35,8 +35,8 @@ struct HASH
 const std::unordered_map<DockState, DockRatio, HASH> DockRatioMap =
 {
     //DS_UNDOCK inherits everything after the window created automatically
-    {DockState::DS_DOCK_RIGHT, {0.7f, 1.0f}},
-    {DockState::DS_DOCK_LEFT, {0.7f, 1.0f}},
+    {DockState::DS_DOCK_RIGHT, {0.5f, 1.0f}},
+    {DockState::DS_DOCK_LEFT, {0.5f, 1.0f}},
     {DockState::DS_DOCK_BOTTOM, {1.0f, 0.7f}}
 };
 

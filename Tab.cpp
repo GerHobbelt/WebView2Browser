@@ -190,7 +190,8 @@ HRESULT Tab::ResizeWebView()
             DockDataMap.at(ds)->nWidth = bounds.right - bounds.left;
         }
 
-        MoveWindow(hwnd_DevTools, DockDataMap.at(ds)->X, DockDataMap.at(ds)->Y, DockDataMap.at(ds)->nWidth, DockDataMap.at(ds)->nHeight, true);
+        int offset = 8; // This is needed to make the dev window fit fully
+        MoveWindow(hwnd_DevTools, DockDataMap.at(ds)->X - offset, DockDataMap.at(ds)->Y, DockDataMap.at(ds)->nWidth + offset*2, DockDataMap.at(ds)->nHeight + 7, true);
     }
 
     return m_contentController->put_Bounds(bounds);
@@ -235,11 +236,13 @@ void Tab::DockDevTools(DockState state)
     DevToolsState = state;
 
     LONG lStyle = GetWindowLong(hwnd_DevTools, GWL_STYLE);
+    LONG exStyle = GetWindowLong(hwnd_DevTools, GWL_EXSTYLE);
     UINT uFlags = SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED;
     if (state == DockState::DS_UNDOCK)
     {
         SetParent(hwnd_DevTools, nullptr);
         uFlags |= SWP_NOZORDER;
+        exStyle &= ~(WS_EX_LAYERED | WS_EX_WINDOWEDGE);
     }
     else // DOCK
     {
@@ -250,12 +253,15 @@ void Tab::DockDevTools(DockState state)
             DockDataMap.insert(std::make_pair(DockState::DS_UNDOCK, std::make_shared<DockData>(undockedRect.left, undockedRect.top, undockedRect.right - undockedRect.left, undockedRect.bottom - undockedRect.top)));
         }
         SetParent(hwnd_DevTools, m_parentHWnd);
-        lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED | WS_THICKFRAME);
+        lStyle &= ~(WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_OVERLAPPED);
+        lStyle |= WS_BORDER | WS_THICKFRAME;
+        exStyle |= WS_EX_LAYERED | WS_EX_WINDOWEDGE;
     }
     
     SetWindowLong(hwnd_DevTools, GWL_STYLE, lStyle);
+    SetWindowLong(hwnd_DevTools, GWL_EXSTYLE, exStyle);
     SetWindowPos(hwnd_DevTools, HWND_TOP, 0, 0, 0, 0, uFlags);
-    
+
     if (HWND hwndThis = GetWindowHandle(); hwndThis != nullptr)
         SetFocus(hwndThis); // Docking/Undocking the DevTools cause loss of focus. And the AcceleratorKeyPressed event is only set for this window.
 
