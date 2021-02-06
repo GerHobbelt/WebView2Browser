@@ -10,7 +10,7 @@
 class BrowserWindow
 {
 public:
-    static const int c_uiBarHeight = 69;
+    static const int c_uiBarHeight = 70;
     static const int c_optionsDropdownHeight = 108;
     static const int c_optionsDropdownWidth = 200;
 

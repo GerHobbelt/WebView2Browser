@@ -826,7 +826,6 @@ HRESULT BrowserWindow::ResizeUIWebViews()
         RECT bounds;
         GetClientRect(m_hWnd, &bounds);
         bounds.bottom = bounds.top + GetDPIAwareBound(c_uiBarHeight);
-        bounds.bottom += 1;
 
         RETURN_IF_FAILED(m_controlsController->put_Bounds(bounds));
     }
