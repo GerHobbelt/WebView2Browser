@@ -14,7 +14,7 @@ Tab::Tab() : DevToolsState(DockState::DS_UNKNOWN) {}
 LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
     if (Tab* tab = reinterpret_cast<Tab*>(dwRefData))
-        switch (msg)
+        switch (DockState ds = tab->GetDevToolsState(); msg)
         {
         case WM_PAINT:
             {
@@ -28,7 +28,6 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
                 auto oldpen = SelectObject(hdc, hpen);
                 SelectObject(hdc, GetStockObject(NULL_BRUSH));
                 // Draw a straight line that splits the webview and the dev tool window from each other
-                DockState ds = tab->GetDevToolsState();
                 MoveToEx(hdc, ds == DockState::DS_DOCK_LEFT ? rc.right : rc.left, rc.top, NULL);
                 LineTo(hdc, ds == DockState::DS_DOCK_RIGHT ? rc.left : rc.right, ds == DockState::DS_DOCK_BOTTOM ? rc.top : rc.bottom);
                 SelectObject(hdc, oldpen);
@@ -51,7 +50,6 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 
                 if (state)
                 {
-                    DockState ds = tab->GetDevToolsState();
                     // Get rid of non-client area
                     sz->rgrc[0].left -= rect.left;
                     sz->rgrc[0].right += rect.right;
@@ -77,7 +75,7 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
             {
                 LRESULT lrDef = DefSubclassProc(hWnd, msg, wParam, lParam);
                 int rightDirection = -10; // Default value, nothing special. You get HTERROR(-2) minimum.
-                switch (tab->GetDevToolsState())
+                switch (ds)
                 {
                     case DockState::DS_DOCK_RIGHT: // If docked right,
                         rightDirection = HTLEFT; // then we can only resize to left side
@@ -101,7 +99,6 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
         case WM_SIZING:
             {
                 PRECT rectp = (PRECT)lParam;
-                DockState ds = tab->GetDevToolsState();
                 tab->DockDataMap.at(ds)->nWidth = rectp->right - rectp->left;
                 tab->DockDataMap.at(ds)->nHeight = rectp->bottom - rectp->top;
                 switch (ds)
