@@ -30,10 +30,6 @@ public:
     HRESULT HandleTabMessageReceived(size_t tabId, ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* eventArgs);
     int GetDPIAwareBound(int bound);
     static void CheckFailure(HRESULT hr, LPCWSTR errorMessage);
-    int GetRemainingTabAmount()
-    {
-        return int(m_tabs.size()) - int(distance(m_tabs.begin(), find_if(m_tabs.begin(), m_tabs.end(), [this](const auto&it) { return it.second->GetTabId() == m_activeTabId; })));
-    }
 protected:
     HINSTANCE m_hInst = nullptr;  // Current app instance
     HWND m_hWnd = nullptr;

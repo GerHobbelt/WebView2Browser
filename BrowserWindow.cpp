@@ -484,14 +484,14 @@ HRESULT BrowserWindow::SwitchToTab(size_t tabId)
     RETURN_IF_FAILED(m_tabs.at(tabId)->ResizeWebView());
     RETURN_IF_FAILED(m_tabs.at(tabId)->m_contentController->put_IsVisible(TRUE));
     if (m_tabs.at(tabId)->GetDevToolsState() != DockState::DS_UNKNOWN)
-        ShowWindow(m_tabs.at(tabId)->GetDevTools(), SW_SHOW);
+        ShowWindow(GetParent(m_tabs.at(tabId)->GetDevTools()), SW_SHOW);
     m_activeTabId = tabId;
 
     if (previousActiveTab != INVALID_TAB_ID && previousActiveTab != m_activeTabId)
     {
         RETURN_IF_FAILED(m_tabs.at(previousActiveTab)->m_contentController->put_IsVisible(FALSE));
         if (m_tabs.at(previousActiveTab)->GetDevToolsState() != DockState::DS_UNKNOWN)
-            ShowWindow(m_tabs.at(previousActiveTab)->GetDevTools(), SW_HIDE);
+            ShowWindow(GetParent(m_tabs.at(previousActiveTab)->GetDevTools()), SW_HIDE);
     }
 
     return S_OK;

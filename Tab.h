@@ -46,17 +46,9 @@ struct DockData
     int X, Y, nWidth, nHeight;
 };
 
-// Current window dimensions
-static std::unordered_map<DockState, std::shared_ptr<DockData>, HASH> DockDataMap =
+static DockState operator+ (DockState const &d, int const &n) 
 {
-    {DockState::DS_DOCK_RIGHT, nullptr},
-    {DockState::DS_DOCK_LEFT, nullptr},
-    {DockState::DS_DOCK_BOTTOM, nullptr}
-};
-
-static DockState operator+ (DockState const &d1, int const &n) 
-{
-    return static_cast<DockState>(static_cast<int>(d1)+n); 
+    return static_cast<DockState>(static_cast<int>(d)+n); 
 }
 
 class Tab
@@ -67,21 +59,17 @@ public:
     Microsoft::WRL::ComPtr<ICoreWebView2> m_contentWebView;
     Microsoft::WRL::ComPtr<ICoreWebView2DevToolsProtocolEventReceiver> m_securityStateChangedReceiver;
 
-    static BOOL CALLBACK EnumWindowsProcStatic(_In_ HWND hwnd, _In_ LPARAM lParam);
-    BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam);
-
     static std::unique_ptr<Tab> CreateNewTab(HWND hWnd, ICoreWebView2Environment* env, size_t id, bool shouldBeActive);
-    HRESULT ResizeWebView();
-    void DockDevTools(DockState state);
-    void CalculateDockData(RECT bounds);
+    HRESULT ResizeWebView(bool recalculate = false);
+    void FindDevTools();
     HWND GetDevTools();
-    HWND GetWindowHandle();
     DockState GetDevToolsState();
-    size_t GetTabId() { return m_tabId; }
+    void DockDevTools(DockState state);
 protected:
     HWND m_parentHWnd = nullptr;
-    HWND hwnd_DevTools = nullptr;
-    HWND m_hWnd = nullptr;
+    HWND m_devtHWnd = nullptr;
+    HWND m_devtHolderHWnd = nullptr;
+    HWND m_HWnd = nullptr;
     size_t m_tabId = INVALID_TAB_ID;
     EventRegistrationToken m_historyUpdateForwarderToken = {};
     EventRegistrationToken m_uriUpdateForwarderToken = {};
@@ -94,8 +82,16 @@ protected:
 
     HRESULT Init(ICoreWebView2Environment* env, bool shouldBeActive);
     void SetMessageBroker();
-    void FindDevTools();
+private:
+    static BOOL CALLBACK EnumWindowsProcStatic(_In_ HWND hwnd, _In_ LPARAM lParam);
+    BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam);
+    static LRESULT CALLBACK dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData);
+
+    void CalculateDockData(RECT bounds);
+    DockState DevToolsState;
     DWORD possible_PID; // Possible PID of the DevTools
     DWORD pid_DevTools = 0;
-    DockState DevToolsState;
+    int rzBorderSize = 4; // Border size of resizable side of m_devtHolderHWnd
+    std::tuple<RECT, bool> tplRect = {{0,0,0,0}, false}; // Default border rect of m_devtHolderHWnd
+    std::unordered_map<DockState, std::unique_ptr<DockData>, HASH> DockDataMap; // Current window dimensions
 };
