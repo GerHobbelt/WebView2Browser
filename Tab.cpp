@@ -376,6 +376,7 @@ void Tab::DockDevTools(DockState state)
     if (state == DockState::DS_UNDOCK)
     {
         DestroyWindow(m_devtHolderHWnd);
+        m_devtHolderHWnd = nullptr;
         m_contentWebView->OpenDevToolsWindow();
     }
     else // DOCK
@@ -396,15 +397,14 @@ void Tab::DockDevTools(DockState state)
         wc.lpszClassName = L"Developer_Tools_Holder";
         ::RegisterClass(&wc);
         
-        HWND hwnd = CreateWindowEx(0,wc.lpszClassName, L"", WS_CHILD | WS_SIZEBOX, 0,0,0,0, m_parentHWnd, NULL, GetModuleHandle(NULL), NULL);
-        SetWindowSubclass(hwnd, dtWndProcStatic, 1, (DWORD_PTR) this);
-        SetParent(m_devtHWnd, hwnd);
-
-        if (m_devtHolderHWnd != nullptr)
-            DestroyWindow(m_devtHolderHWnd);
-        m_devtHolderHWnd = hwnd;
-
-        SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) | WS_CHILD);
+        if (m_devtHolderHWnd == nullptr && !IsWindow(m_devtHolderHWnd))
+        {
+            m_devtHolderHWnd = CreateWindowEx(0,wc.lpszClassName, L"", WS_CHILD | WS_SIZEBOX, 0,0,0,0, m_parentHWnd, NULL, GetModuleHandle(NULL), NULL);
+            SetWindowSubclass(m_devtHolderHWnd, dtWndProcStatic, 1, (DWORD_PTR) this);
+            SetParent(m_devtHWnd, m_devtHolderHWnd);
+            SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) | WS_CHILD);
+        }
+        SetWindowPos(m_devtHolderHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
         SetWindowPos(m_devtHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
     }
 
