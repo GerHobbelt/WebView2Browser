@@ -121,7 +121,7 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
             if ((GetKeyState(VK_LBUTTON) & 0x8000) == 0) // Avoid further WM_ENTERSIZEMOVE
                 mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
             break;
-        case WM_NCDESTROY:
+        case WM_DESTROY:
             RemoveWindowSubclass(hWnd, dtWndProcStatic, uIdSubclass);
             break;
         }
@@ -131,7 +131,7 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
 BOOL CALLBACK Tab::EnumWindowsProcStatic(_In_ HWND hwnd, _In_ LPARAM lParam)
 {
     if (Tab* tab = reinterpret_cast<Tab*>(lParam); tab != nullptr)
-        return tab->EnumWindowsProc(hwnd, 0);
+        return tab->EnumWindowsProc(hwnd, reinterpret_cast<LPARAM>(tab->m_parentHWnd));
     return FALSE;
 }
 
@@ -146,6 +146,9 @@ BOOL CALLBACK Tab::EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM lParam)
 
     if (possible_PID == pid)
     {
+        if (BrowserWindow* bw = reinterpret_cast<BrowserWindow*>(GetWindowLongPtr(reinterpret_cast<HWND>(lParam), GWLP_USERDATA)); bw->CheckDTOwnership(hwnd))
+            return TRUE; // Skip, owned by other tab
+
         m_devtHWnd = hwnd;
         pid_DevTools = GetWindowThreadProcessId(hwnd, NULL);
         DevToolsState = DockState::DS_UNDOCK;
@@ -247,9 +250,14 @@ HRESULT Tab::Init(ICoreWebView2Environment* env, bool shouldBeActive)
 
                             RETURN_IF_FAILED(args->put_Handled(TRUE));
                             DockState state = GetDevToolsState();
-                            if (state == DockState::DS_UNKNOWN)
+                            if (HWND hwnd = GetDevTools(); hwnd == nullptr && state == DockState::DS_UNKNOWN)
+                            {
                                 FindDevTools();
-                            state = GetDevToolsState();
+                                state = GetDevToolsState();
+                            }
+                            else if (hwnd != nullptr && state == DockState::DS_UNKNOWN)
+                                state = DockState::DS_UNDOCK;
+
                             if (state != DockState::DS_UNKNOWN)
                                 DockDevTools(state != DockState::DS_AMOUNT+(-1) ? state+1 : DockState::DS_UNDOCK); // Determine the next dock position
                         }
@@ -312,24 +320,28 @@ HRESULT Tab::ResizeWebView(bool recalculate)
 
         if (!recalculate)
         {
-            MoveWindow(m_devtHolderHWnd, DockDataMap.at(ds)->X, DockDataMap.at(ds)->Y,
+            MoveWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, DockDataMap.at(ds)->X, DockDataMap.at(ds)->Y,
                 DockDataMap.at(ds)->nWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0),
                 DockDataMap.at(ds)->nHeight + (ds == DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0), true);
-            ShowWindow(m_devtHolderHWnd, SW_SHOW);
+            ShowWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, SW_SHOW);
         }
-        // m_devtHWnd has borders so we have to take that into account
-        RECT rect[2];
-        GetClientRect(m_devtHWnd, &rect[0]);
-        GetWindowRect(m_devtHWnd, &rect[1]);
-        int dt_bordersWidth = rect[1].right - rect[1].left - rect[0].right;
-        int dt_bordersHeight = rect[1].bottom - rect[1].top - rect[0].bottom;
 
-        int titleBarHeight = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(m_devtHWnd)) + GetSystemMetricsForDpi(SM_CYSIZEFRAME, GetDpiForWindow(m_devtHWnd))
-            + GetSystemMetricsForDpi(SM_CYEDGE, GetDpiForWindow(m_devtHWnd)) * 2;
-        // Below we hide the title bar and the borders of m_devtHWnd. Then we extend the height and the width to fill the gaps...
-        MoveWindow(m_devtHWnd, -dt_bordersWidth/2, -titleBarHeight,
-            DockDataMap.at(ds)->nWidth + dt_bordersWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize/2 : 0),
-            DockDataMap.at(ds)->nHeight + dt_bordersHeight + titleBarHeight + rzBorderSize/2, true);
+        if (ds != DockState::DS_UNDOCK)
+        {
+            // m_devtHWnd has borders so we have to take that into account
+            RECT rect[2];
+            GetClientRect(m_devtHWnd, &rect[0]);
+            GetWindowRect(m_devtHWnd, &rect[1]);
+            int dt_bordersWidth = rect[1].right - rect[1].left - rect[0].right;
+            int dt_bordersHeight = rect[1].bottom - rect[1].top - rect[0].bottom;
+
+            int titleBarHeight = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(m_devtHWnd)) + GetSystemMetricsForDpi(SM_CYSIZEFRAME, GetDpiForWindow(m_devtHWnd))
+                + GetSystemMetricsForDpi(SM_CYEDGE, GetDpiForWindow(m_devtHWnd)) * 2;
+            // Below we hide the title bar and the borders of m_devtHWnd. Then we extend the height and the width to fill the gaps...
+            MoveWindow(m_devtHWnd, -dt_bordersWidth/2, -titleBarHeight,
+                DockDataMap.at(ds)->nWidth + dt_bordersWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize/2 : 0),
+                DockDataMap.at(ds)->nHeight + dt_bordersHeight + titleBarHeight + rzBorderSize/2, true);
+        }
     }
 
     return m_contentController->put_Bounds(bounds);
@@ -375,9 +387,13 @@ void Tab::DockDevTools(DockState state)
 
     if (state == DockState::DS_UNDOCK)
     {
-        DestroyWindow(m_devtHolderHWnd);
+        SetParent(m_devtHWnd, nullptr);
+        LONG style = GetWindowLong(m_devtHWnd, GWL_STYLE);
+        style &= ~WS_CHILD;
+        SetWindowLong(m_devtHWnd, GWL_STYLE, style);
         m_devtHolderHWnd = nullptr;
-        m_contentWebView->OpenDevToolsWindow();
+        DevToolsState = DockState::DS_UNDOCK;
+        DestroyWindow(m_devtHolderHWnd);
     }
     else // DOCK
     {
