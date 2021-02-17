@@ -424,7 +424,7 @@ void BrowserWindow::SetUIMessageBroker()
         {
             size_t tabId = args.at(L"tabId").as_number().to_uint32();
 
-            SwitchToTab(tabId);
+            SwitchToTab(tabId, false);
         }
         break;
         case MG_CLOSE_TAB:
@@ -477,24 +477,42 @@ void BrowserWindow::SetUIMessageBroker()
     });
 }
 
-HRESULT BrowserWindow::SwitchToTab(size_t tabId)
+HRESULT BrowserWindow::SwitchToTab(size_t tabId, bool justCreated)
 {
     size_t previousActiveTab = m_activeTabId;
 
     RETURN_IF_FAILED(m_tabs.at(tabId)->ResizeWebView());
     RETURN_IF_FAILED(m_tabs.at(tabId)->m_contentController->put_IsVisible(TRUE));
-    if (m_tabs.at(tabId)->GetDevToolsState() != DockState::DS_UNKNOWN)
-        ShowWindow(GetParent(m_tabs.at(tabId)->GetDevTools()), SW_SHOW);
     m_activeTabId = tabId;
 
-    if (previousActiveTab != INVALID_TAB_ID && previousActiveTab != m_activeTabId)
-    {
-        RETURN_IF_FAILED(m_tabs.at(previousActiveTab)->m_contentController->put_IsVisible(FALSE));
-        if (m_tabs.at(previousActiveTab)->GetDevToolsState() != DockState::DS_UNKNOWN)
-            ShowWindow(GetParent(m_tabs.at(previousActiveTab)->GetDevTools()), SW_HIDE);
-    }
+    if (previousActiveTab != INVALID_TAB_ID)
+        if (previousActiveTab != m_activeTabId)
+        {
+            RETURN_IF_FAILED(m_tabs.at(previousActiveTab)->m_contentController->put_IsVisible(FALSE));
+            SetDTVisibility(previousActiveTab, SW_HIDE);
+            if (!justCreated) // This will speed things up
+                SetDTVisibility(m_activeTabId, SW_SHOW);
+        }
 
     return S_OK;
+}
+
+void BrowserWindow::SetDTVisibility(size_t tabId, int nCmdShow)
+{
+    DockState ds = m_tabs.at(tabId)->GetDevToolsState();
+    if (HWND hwnd = m_tabs.at(tabId)->GetDevTools(); ds != DockState::DS_UNKNOWN)
+        ShowWindow(GetParent(hwnd) == nullptr ? hwnd : GetParent(hwnd), nCmdShow);
+    else if (hwnd == nullptr) // here we do not know if there is any dev tool window
+    {
+        m_tabs.at(tabId)->FindDevTools();
+        if (hwnd = m_tabs.at(tabId)->GetDevTools(); hwnd != nullptr)
+        {
+            ShowWindow(hwnd, nCmdShow);
+            m_tabs.at(tabId)->SetDevToolsState(DockState::DS_UNKNOWN);
+        }
+    }
+    else if (ds == DockState::DS_UNKNOWN)
+        ShowWindow(hwnd, nCmdShow);
 }
 
 HRESULT BrowserWindow::HandleTabURIUpdate(size_t tabId, ICoreWebView2* webview)
@@ -687,7 +705,7 @@ void BrowserWindow::HandleTabCreated(size_t tabId, bool shouldBeActive)
 {
     if (shouldBeActive)
     {
-        CheckFailure(SwitchToTab(tabId), L"");
+        CheckFailure(SwitchToTab(tabId, true), L"");
     }
 }
 

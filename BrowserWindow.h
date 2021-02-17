@@ -30,6 +30,8 @@ public:
     HRESULT HandleTabMessageReceived(size_t tabId, ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* eventArgs);
     int GetDPIAwareBound(int bound);
     static void CheckFailure(HRESULT hr, LPCWSTR errorMessage);
+    bool CheckDTOwnership(HWND dtHwnd) { return find_if(m_tabs.begin(), m_tabs.end(), [dtHwnd](const auto&it) { return it.second->GetDevTools() == dtHwnd; }) != m_tabs.end(); }
+    void SetDTVisibility(size_t tabId, int nCmdShow);
 protected:
     HINSTANCE m_hInst = nullptr;  // Current app instance
     HWND m_hWnd = nullptr;
@@ -69,6 +71,6 @@ protected:
     HRESULT ResizeUIWebViews();
     void UpdateMinWindowSize();
     HRESULT PostJsonToWebView(web::json::value jsonObj, ICoreWebView2* webview);
-    HRESULT SwitchToTab(size_t tabId);
+    HRESULT SwitchToTab(size_t tabId, bool justCreated);
     std::wstring GetFilePathAsURI(std::wstring fullPath);
 };

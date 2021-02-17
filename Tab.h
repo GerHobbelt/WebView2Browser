@@ -64,6 +64,7 @@ public:
     void FindDevTools();
     HWND GetDevTools();
     DockState GetDevToolsState();
+    void SetDevToolsState(DockState ds) { DevToolsState = ds; }
     void DockDevTools(DockState state);
 protected:
     HWND m_parentHWnd = nullptr;
