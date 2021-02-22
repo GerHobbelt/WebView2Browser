@@ -33,6 +33,9 @@
     <ClInclude Include="Tab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="asyncutility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WebViewBrowserApp.cpp">

@@ -6,6 +6,7 @@
 #include "Tab.h"
 #include <tlhelp32.h>
 #include <Commctrl.h>
+#include "asyncutility.h"
 
 using namespace Microsoft::WRL;
 
@@ -247,19 +248,28 @@ HRESULT Tab::Init(ICoreWebView2Environment* env, bool shouldBeActive)
                         RETURN_IF_FAILED(args->get_PhysicalKeyStatus(&status));
                         if ((GetKeyState(VK_CONTROL) & 0x8000) && (GetKeyState(VK_SHIFT) & 0x8000)) // CTRL + SHIFT + D
                         {
-
                             RETURN_IF_FAILED(args->put_Handled(TRUE));
-                            DockState state = GetDevToolsState();
-                            if (HWND hwnd = GetDevTools(); hwnd == nullptr && state == DockState::DS_UNKNOWN)
-                            {
-                                FindDevTools();
-                                state = GetDevToolsState();
-                            }
-                            else if (hwnd != nullptr && state == DockState::DS_UNKNOWN)
-                                state = DockState::DS_UNDOCK;
 
-                            if (state != DockState::DS_UNKNOWN)
-                                DockDevTools(state != DockState::DS_AMOUNT+(-1) ? state+1 : DockState::DS_UNDOCK); // Determine the next dock position
+                            auto before = [this]
+                            {
+                                DockState state = GetDevToolsState();
+                                if (HWND hwnd = GetDevTools(); hwnd == nullptr && state == DockState::DS_UNKNOWN)
+                                    FindDevTools();
+                                return true;
+                            };
+
+                            auto after = [this]
+                            {
+                                DockState state = GetDevToolsState();
+                                if (HWND hwnd = GetDevTools(); hwnd != nullptr && state == DockState::DS_UNKNOWN)
+                                    state = DockState::DS_UNDOCK;
+
+                                if (state != DockState::DS_UNKNOWN)
+                                    DockDevTools(state != DockState::DS_AMOUNT+(-1) ? state+1 : DockState::DS_UNDOCK); // Determine the next dock position
+                            };
+
+                            // Perform the action asynchronously to avoid blocking the browser process's event queue.
+                            async_future<bool, void()>(before, after);
                         }
                     }
                 }
@@ -319,12 +329,13 @@ HRESULT Tab::ResizeWebView(bool recalculate)
         }
 
         if (!recalculate)
-        {
-            MoveWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, DockDataMap.at(ds)->X, DockDataMap.at(ds)->Y,
-                DockDataMap.at(ds)->nWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0),
-                DockDataMap.at(ds)->nHeight + (ds == DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0), true);
-            ShowWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, SW_SHOW);
-        }
+            if (auto itr = DockDataMap.find(ds); itr != DockDataMap.end())
+            {
+                MoveWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, itr->second->X, itr->second->Y,
+                    itr->second->nWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0),
+                    itr->second->nHeight + (ds == DockState::DS_DOCK_BOTTOM ? rzBorderSize : 0), true);
+                ShowWindow(m_devtHolderHWnd == nullptr ? m_devtHWnd : m_devtHolderHWnd, SW_SHOW);
+            }
 
         if (ds != DockState::DS_UNDOCK)
         {
@@ -388,12 +399,15 @@ void Tab::DockDevTools(DockState state)
     if (state == DockState::DS_UNDOCK)
     {
         SetParent(m_devtHWnd, nullptr);
-        LONG style = GetWindowLong(m_devtHWnd, GWL_STYLE);
-        style &= ~WS_CHILD;
-        SetWindowLong(m_devtHWnd, GWL_STYLE, style);
-        m_devtHolderHWnd = nullptr;
-        DevToolsState = DockState::DS_UNDOCK;
+        SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) & ~WS_CHILD);
         DestroyWindow(m_devtHolderHWnd);
+        m_devtHolderHWnd = nullptr;
+
+        DevToolsState = DockState::DS_UNDOCK;
+        // Move the window back to it's original position
+        if (auto itr = DockDataMap.find(DevToolsState); itr != DockDataMap.end())
+            MoveWindow(m_devtHWnd, itr->second->X, itr->second->Y, itr->second->nWidth + rzBorderSize, itr->second->nHeight, true);
+        DockDataMap.erase(DockState::DS_UNDOCK);
     }
     else // DOCK
     {
@@ -420,7 +434,9 @@ void Tab::DockDevTools(DockState state)
             SetParent(m_devtHWnd, m_devtHolderHWnd);
             SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) | WS_CHILD);
         }
-        SetWindowPos(m_devtHolderHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
+        
+        if (m_devtHolderHWnd != nullptr)
+            SetWindowPos(m_devtHolderHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
         SetWindowPos(m_devtHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
     }
 

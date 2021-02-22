@@ -185,6 +185,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="asyncutility.h" />
     <ClInclude Include="BrowserWindow.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />

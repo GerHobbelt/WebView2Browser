@@ -5,6 +5,8 @@
 #include "BrowserWindow.h"
 #include "shlobj.h"
 #include <Urlmon.h>
+#include "asyncutility.h"
+
 #pragma comment (lib, "Urlmon.lib")
 
 using namespace Microsoft::WRL;
@@ -504,12 +506,18 @@ void BrowserWindow::SetDTVisibility(size_t tabId, int nCmdShow)
         ShowWindow(GetParent(hwnd) == nullptr ? hwnd : GetParent(hwnd), nCmdShow);
     else if (hwnd == nullptr) // here we do not know if there is any dev tool window
     {
-        m_tabs.at(tabId)->FindDevTools();
-        if (hwnd = m_tabs.at(tabId)->GetDevTools(); hwnd != nullptr)
+        auto before = [this, tabId] { m_tabs.at(tabId)->FindDevTools(); return true; };
+        auto after = [this, tabId, nCmdShow]
         {
-            ShowWindow(hwnd, nCmdShow);
-            m_tabs.at(tabId)->SetDevToolsState(DockState::DS_UNKNOWN);
-        }
+            if (HWND hwnd = m_tabs.at(tabId)->GetDevTools(); hwnd != nullptr)
+            {
+                ShowWindow(hwnd, nCmdShow);
+                m_tabs.at(tabId)->SetDevToolsState(DockState::DS_UNDOCK);
+            }
+        };
+
+        // Perform the action asynchronously to avoid blocking the browser process's event queue.
+        async_future<bool, void()>(before, after);
     }
     else if (ds == DockState::DS_UNKNOWN)
         ShowWindow(hwnd, nCmdShow);
