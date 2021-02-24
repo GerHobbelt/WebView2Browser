@@ -269,7 +269,7 @@ HRESULT Tab::Init(ICoreWebView2Environment* env, bool shouldBeActive)
                             };
 
                             // Perform the action asynchronously to avoid blocking the browser process's event queue.
-                            async_future<bool, void()>(before, after);
+                            async_future<bool>(before, after);
                         }
                     }
                 }

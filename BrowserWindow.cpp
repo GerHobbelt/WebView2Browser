@@ -517,7 +517,7 @@ void BrowserWindow::SetDTVisibility(size_t tabId, int nCmdShow)
         };
 
         // Perform the action asynchronously to avoid blocking the browser process's event queue.
-        async_future<bool, void()>(before, after);
+        async_future<bool>(before, after);
     }
     else if (ds == DockState::DS_UNKNOWN)
         ShowWindow(hwnd, nCmdShow);

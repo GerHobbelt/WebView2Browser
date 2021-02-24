@@ -5,7 +5,7 @@
 
 using namespace Concurrency;
 
-template <typename T1, typename T2>
+template <typename T>
 class async_future
 {
 public:
@@ -35,9 +35,9 @@ public:
 
     // Retrieves the result of the work function.
     // This method blocks if the async_future object is still computing the value.
-    T1 get() { return receive(_value); }
+    auto get() { return receive(_value); }
 private:
     task_group _tasks; // Executes the asynchronous work function.
-    single_assignment<T1> _value; // Stores the result of the asynchronous work function.
-    std::function<T2> after; // What to do synchronously after the given task is done
+    single_assignment<T> _value; // Stores the result of the asynchronous work function.
+    std::function<void()> after; // What to do synchronously after the given task is done
 };
