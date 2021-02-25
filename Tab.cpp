@@ -398,15 +398,14 @@ void Tab::DockDevTools(DockState state)
 
     if (state == DockState::DS_UNDOCK)
     {
+        // Move the window back to it's original position
+        if (auto itr = DockDataMap.find(DevToolsState); itr != DockDataMap.end())
+            MoveWindow(m_devtHWnd, itr->second->X, itr->second->Y, itr->second->nWidth + rzBorderSize, itr->second->nHeight, true);
         SetParent(m_devtHWnd, nullptr);
         SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) & ~WS_CHILD);
         DestroyWindow(m_devtHolderHWnd);
         m_devtHolderHWnd = nullptr;
-
         DevToolsState = DockState::DS_UNDOCK;
-        // Move the window back to it's original position
-        if (auto itr = DockDataMap.find(DevToolsState); itr != DockDataMap.end())
-            MoveWindow(m_devtHWnd, itr->second->X, itr->second->Y, itr->second->nWidth + rzBorderSize, itr->second->nHeight, true);
         DockDataMap.erase(DockState::DS_UNDOCK);
     }
     else // DOCK
