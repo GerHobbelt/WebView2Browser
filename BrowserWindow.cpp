@@ -503,8 +503,8 @@ void BrowserWindow::SetDTVisibility(size_t tabId, int nCmdShow)
 {
     DockState ds = m_tabs.at(tabId)->GetDevToolsState();
     if (HWND hwnd = m_tabs.at(tabId)->GetDevTools(); ds != DockState::DS_UNKNOWN)
-        ShowWindow(GetParent(hwnd) == nullptr ? hwnd : GetParent(hwnd), nCmdShow);
-    else if (hwnd == nullptr) // here we do not know if there is any dev tool window
+        ShowWindow(m_tabs.at(tabId)->GetDevToolsHolder() == nullptr ? hwnd : m_tabs.at(tabId)->GetDevToolsHolder(), nCmdShow);
+    else if (hwnd == nullptr) // here we do not know if there is any dev tools window
     {
         auto before = [this, tabId] { m_tabs.at(tabId)->FindDevTools(); return true; };
         auto after = [this, tabId, nCmdShow]

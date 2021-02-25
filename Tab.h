@@ -63,14 +63,15 @@ public:
     HRESULT ResizeWebView(bool recalculate = false);
     void FindDevTools();
     HWND GetDevTools();
+    HWND GetDevToolsHolder() { return m_devtHolderHWnd; }
     DockState GetDevToolsState();
     void SetDevToolsState(DockState ds) { DevToolsState = ds; }
     void DockDevTools(DockState state);
 protected:
     HWND m_parentHWnd = nullptr;
-    HWND m_devtHWnd = nullptr;
-    HWND m_devtHolderHWnd = nullptr;
-    HWND m_HWnd = nullptr;
+    HWND m_devtHWnd = nullptr; // Dev tools window
+    HWND m_devtHolderHWnd = nullptr; // Window that hosts dev tools window
+    HWND m_HWnd = nullptr; // Webview window
     size_t m_tabId = INVALID_TAB_ID;
     EventRegistrationToken m_historyUpdateForwarderToken = {};
     EventRegistrationToken m_uriUpdateForwarderToken = {};

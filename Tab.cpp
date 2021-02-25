@@ -28,7 +28,7 @@ LRESULT CALLBACK Tab::dtWndProcStatic(HWND hWnd, UINT msg, WPARAM wParam, LPARAM
                 auto hpen = CreatePen(PS_SOLID, tab->rzBorderSize, RGB(204, 204, 204));
                 auto oldpen = SelectObject(hdc, hpen);
                 SelectObject(hdc, GetStockObject(NULL_BRUSH));
-                // Draw a straight line that splits the webview and the dev tool window from each other
+                // Draw a straight line that splits the webview and the dev tools window from each other
                 MoveToEx(hdc, ds == DockState::DS_DOCK_LEFT ? rc.right : rc.left, rc.top, NULL);
                 LineTo(hdc, ds == DockState::DS_DOCK_RIGHT ? rc.left : rc.right, ds == DockState::DS_DOCK_BOTTOM ? rc.top : rc.bottom);
                 SelectObject(hdc, oldpen);
@@ -402,7 +402,7 @@ void Tab::DockDevTools(DockState state)
         if (auto itr = DockDataMap.find(DevToolsState); itr != DockDataMap.end())
             MoveWindow(m_devtHWnd, itr->second->X, itr->second->Y, itr->second->nWidth + rzBorderSize, itr->second->nHeight, true);
         SetParent(m_devtHWnd, nullptr);
-        SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) & ~WS_CHILD);
+        //SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) & ~WS_CHILD);
         DestroyWindow(m_devtHolderHWnd);
         m_devtHolderHWnd = nullptr;
         DevToolsState = DockState::DS_UNDOCK;
@@ -431,7 +431,7 @@ void Tab::DockDevTools(DockState state)
             m_devtHolderHWnd = CreateWindowEx(0,wc.lpszClassName, L"", WS_CHILD | WS_SIZEBOX, 0,0,0,0, m_parentHWnd, NULL, GetModuleHandle(NULL), NULL);
             SetWindowSubclass(m_devtHolderHWnd, dtWndProcStatic, 1, (DWORD_PTR) this);
             SetParent(m_devtHWnd, m_devtHolderHWnd);
-            SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) | WS_CHILD);
+            //SetWindowLong(m_devtHWnd, GWL_STYLE, GetWindowLong(m_devtHWnd, GWL_STYLE) | WS_CHILD);
         }
         
         if (m_devtHolderHWnd != nullptr)
