@@ -346,8 +346,7 @@ HRESULT Tab::ResizeWebView(bool recalculate)
             int dt_bordersWidth = rect[1].right - rect[1].left - rect[0].right;
             int dt_bordersHeight = rect[1].bottom - rect[1].top - rect[0].bottom;
 
-            int titleBarHeight = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(m_devtHWnd)) + GetSystemMetricsForDpi(SM_CYSIZEFRAME, GetDpiForWindow(m_devtHWnd))
-                + GetSystemMetricsForDpi(SM_CYEDGE, GetDpiForWindow(m_devtHWnd)) * 2;
+            int titleBarHeight = GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYSIZEFRAME) + GetSystemMetrics(SM_CYEDGE) * 2;
             // Below we hide the title bar and the borders of m_devtHWnd. Then we extend the height and the width to fill the gaps...
             MoveWindow(m_devtHWnd, -dt_bordersWidth/2, -titleBarHeight,
                 DockDataMap.at(ds)->nWidth + dt_bordersWidth + (ds != DockState::DS_DOCK_BOTTOM ? rzBorderSize/2 : 0),
