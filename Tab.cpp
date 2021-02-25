@@ -440,7 +440,7 @@ void Tab::DockDevTools(DockState state)
         SetWindowPos(m_devtHWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_FRAMECHANGED);
     }
 
-    if (state != DockState::DS_UNDOCK)
+    if (m_HWnd != nullptr && state != DockState::DS_UNDOCK)
         SetFocus(m_HWnd); // Docking/Undocking the DevTools cause loss of focus. And the AcceleratorKeyPressed event is only set for this window.
 
     ResizeWebView();
