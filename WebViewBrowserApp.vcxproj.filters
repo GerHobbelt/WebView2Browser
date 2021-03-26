@@ -54,15 +54,11 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="WebViewBrowserApp.ico">
+    <Image Include="WebView2Browser.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ui_bar.html" />
     <None Include="packages.config" />
   </ItemGroup>
 </Project>
