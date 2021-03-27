@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{c09cdc5b-c24a-46f4-85ca-3a16513c0d85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\controls_ui">
+      <UniqueIdentifier>{06f87f03-e5aa-4485-9ef5-3e4a6aa72720}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI\content_ui">
+      <UniqueIdentifier>{1ee98e02-034d-41a5-a986-e5ce0f01af73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -60,5 +69,83 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="wvbrowser_ui\commands.js">
+      <Filter>UI</Filter>
+    </None>
+    <None Include="wvbrowser_ui\webview2_emu.js">
+      <Filter>UI</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\address-bar.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\controls.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\default.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\default.html">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\default.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\favorites.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\history.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\options.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\options.html">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\options.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\storage.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\strip.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\styles.css">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\controls_ui\tabs.js">
+      <Filter>UI\controls_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\favorites.html">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\favorites.js">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\history.css">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\history.html">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\history.js">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\items.css">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\settings.css">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\settings.html">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\settings.js">
+      <Filter>UI\content_ui</Filter>
+    </None>
+    <None Include="wvbrowser_ui\content_ui\styles.css">
+      <Filter>UI\content_ui</Filter>
+    </None>
   </ItemGroup>
 </Project>
