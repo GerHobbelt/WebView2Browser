@@ -11,8 +11,8 @@ class BrowserWindow
 {
 public:
     static const int c_uiBarHeight = 70;
-    static const int c_optionsDropdownHeight = 108;
-    static const int c_optionsDropdownWidth = 200;
+    static const int c_optionsDropdownHeight = 208;
+    static const int c_optionsDropdownWidth = 300;
 
     static ATOM RegisterClass(_In_ HINSTANCE hInstance);
     static LRESULT CALLBACK WndProcStatic(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
