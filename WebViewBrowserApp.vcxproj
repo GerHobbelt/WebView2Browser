@@ -200,7 +200,32 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="ui_bar.html" />
+    <None Include="wvbrowser_ui\commands.js" />
+    <None Include="wvbrowser_ui\content_ui\favorites.html" />
+    <None Include="wvbrowser_ui\content_ui\favorites.js" />
+    <None Include="wvbrowser_ui\content_ui\history.css" />
+    <None Include="wvbrowser_ui\content_ui\history.html" />
+    <None Include="wvbrowser_ui\content_ui\history.js" />
+    <None Include="wvbrowser_ui\content_ui\items.css" />
+    <None Include="wvbrowser_ui\content_ui\settings.css" />
+    <None Include="wvbrowser_ui\content_ui\settings.html" />
+    <None Include="wvbrowser_ui\content_ui\settings.js" />
+    <None Include="wvbrowser_ui\content_ui\styles.css" />
+    <None Include="wvbrowser_ui\controls_ui\address-bar.css" />
+    <None Include="wvbrowser_ui\controls_ui\controls.css" />
+    <None Include="wvbrowser_ui\controls_ui\default.css" />
+    <None Include="wvbrowser_ui\controls_ui\default.html" />
+    <None Include="wvbrowser_ui\controls_ui\default.js" />
+    <None Include="wvbrowser_ui\controls_ui\favorites.js" />
+    <None Include="wvbrowser_ui\controls_ui\history.js" />
+    <None Include="wvbrowser_ui\controls_ui\options.css" />
+    <None Include="wvbrowser_ui\controls_ui\options.html" />
+    <None Include="wvbrowser_ui\controls_ui\options.js" />
+    <None Include="wvbrowser_ui\controls_ui\storage.js" />
+    <None Include="wvbrowser_ui\controls_ui\strip.css" />
+    <None Include="wvbrowser_ui\controls_ui\styles.css" />
+    <None Include="wvbrowser_ui\controls_ui\tabs.js" />
+    <None Include="wvbrowser_ui\webview2_emu.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
